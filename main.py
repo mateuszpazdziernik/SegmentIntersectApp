@@ -5,9 +5,9 @@ from tkinter import messagebox
 
 os.environ['TK_SILENCE_DEPRECATION'] = '1'
 
-# Core geometric classes
+# Basic geometric classes
 class EventPoint:
-    """Event point class (upper/lower segment endpoint or intersection point)"""
+    """Class for event point (upper/lower segment point or intersection point)"""
     def __init__(self, x, y, segment=None, is_upper=False, is_lower=False):
         self.x = x
         self.y = y
@@ -20,15 +20,15 @@ class EventPoint:
 
 class Status:
     """
-    Maintains active segments intersecting with sweep line.
-    Segments are sorted by their intersection point with sweep line.
+    Maintains active segments intersecting with the sweep line.
+    Segments are sorted by their intersection with the sweep line.
     """
     def __init__(self):
         self.segments = []  # list of active segments
-        self.segment_index = {}  # mapping segments to their indices
+        self.segment_index = {}  # mapping of segments to their indices
     
     def _normalize_segment(self, segment):
-        """Normalizes segment representation to a unique form"""
+        """Normalizes the representation of a segment to a unique form"""
         (x1, y1), (x2, y2) = segment
         if y1 > y2 or (y1 == y2 and x1 > x2):
             return ((x2, y2), (x1, y1))
@@ -38,13 +38,13 @@ class Status:
         normalized = self._normalize_segment(segment)
         if normalized not in self.segment_index:
             self.segments.append(segment)
-            # Sort by intersection with sweep line
-            sweep_y = segment[0][1]  # use y-coordinate of upper point
+            # Sort by intersection with the sweep line
+            sweep_y = segment[0][1]  # use the y-coordinate of the upper point
             self.segments.sort(key=lambda s: self._get_x_at_y(s, sweep_y))
             self.segment_index[normalized] = self.segments.index(segment)
     
     def _get_x_at_y(self, segment, y):
-        """Calculates x-coordinate of intersection with horizontal line y"""
+        """Calculates the x-coordinate of the intersection with a horizontal line y"""
         (x1, y1), (x2, y2) = segment
         if y1 == y2:
             return x1
@@ -73,9 +73,9 @@ class Status:
 def detect_intersection(segment1, segment2):
     """
     Checks if two segments intersect using point orientation.
-    Handles special cases like collinear points.
+    Handles special cases such as collinear points.
     """
-    # Handle case when segments are identical
+    # Handle case where segments are identical
     if segment1 == segment2:
         return True
 
@@ -99,7 +99,7 @@ def detect_intersection(segment1, segment2):
     o3 = orientation(p2, q2, p1)
     o4 = orientation(p2, q2, q1)
 
-    if o1 != o2 and o3 != o4:
+    if o1 != o2 & o3 != o4:
         return True
 
     if o1 == 0 and on_segment(p1, p2, q1):
@@ -117,7 +117,7 @@ def detect_intersection(segment1, segment2):
     return False
 
 def find_intersection_point(segment1, segment2):
-    """Calculates intersection point or common segment"""
+    """Calculates the intersection point or common segment"""
     (x1, y1), (x2, y2) = segment1
     (x3, y3), (x4, y4) = segment2
     
@@ -126,24 +126,22 @@ def find_intersection_point(segment1, segment2):
     
     if abs(denom) < EPSILON:  # Parallel segments
         if detect_intersection(segment1, segment2):
-            # Find common segment
             points = sorted([(x1, y1), (x2, y2), (x3, y3), (x4, y4)], 
                           key=lambda p: (p[0], p[1]))
-            # Check if segments actually overlap
-            if points[1] == points[2]:  # Touch at a single point
+            if points[1] == points[2]:  # Touch at one point
                 return points[1]
-            # Return start and end points of common section
             return (points[1], points[2])
         return None
     
-    # Calculate intersection point
+    # Calculate parameter t for the first segment
     t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
     
     if 0 <= t <= 1:
+        # Calculate intersection point using parameter t
         x = x1 + t * (x2 - x1)
-        y = y1 + t * (x2 - x1)  # Fixed: using correct y increment
+        y = y1 + t * (y2 - y1)  # Corrected: use the correct y increment
         
-        # Verify point lies on second segment
+        # Check if the point lies on the second segment
         if abs(x4 - x3) > EPSILON:
             u = (x - x3) / (x4 - x3)
         elif abs(y4 - y3) > EPSILON:
@@ -157,17 +155,17 @@ def find_intersection_point(segment1, segment2):
 
 class Intersection:
     """
-    Stores intersection information:
-    - intersection point (if single point)
+    Stores information about an intersection:
+    - intersection point (if a single point)
     - participating segments
-    - intersection type (point/overlap)
+    - type of intersection (point/overlap)
     """
     def __init__(self, point=None, segment1=None, segment2=None, is_overlap=False, overlap_points=None):
         self.point = point  # (x, y) for intersection point
         self.segment1 = segment1
         self.segment2 = segment2
         self.is_overlap = is_overlap
-        self.overlap_points = overlap_points  # (start, end) for overlapping
+        self.overlap_points = overlap_points  # (start, end) for overlapping segments
 
 def handle_event_point(event_point, status, event_queue, intersections):
     try:
@@ -237,27 +235,27 @@ def handle_event_point(event_point, status, event_queue, intersections):
         print(f"Error processing segment: {e}")
 
 def input_segments():
-    """Reads input data from user"""
+    """Reads input data from the user"""
     segments = []
     n = int(input("Enter the number of segments: "))
     for _ in range(n):
-        x1, y1 = map(float, input("Enter the coordinates of the first point (x1 y1): ").split())
-        x2, y2 = map(float, input("Enter the coordinates of the second point (x2 y2): ").split())
+        x1, y1 = map(float, input("Enter coordinates of the first point (x1 y1): ").split())
+        x2, y2 = map(float, input("Enter coordinates of the second point (x2 y2): ").split())
         segments.append(((x1, y1), (x2, y2)))
     return segments
 
 # Helper functions for visualization and displaying results
 def display_segments(segments):
-    """Displays visualization of segments in ASCII art"""
-    print("\nSegments visualization:")
+    """Displays a visualization of segments in ASCII art"""
+    print("\nSegment visualization:")
     
-    # Find dimensions of visualization area
+    # Find the dimensions of the visualization area
     min_x = min(min(x1, x2) for (x1, y1), (x2, y2) in segments)
     max_x = max(max(x1, x2) for (x1, y1), (x2, y2) in segments)
     min_y = min(min(y1, y2) for (x1, y1), (x2, y2) in segments)
     max_y = max(max(y1, y2) for (x1, y1), (x2, y2) in segments)
     
-    # Create grid
+    # Create a grid
     width = int(max_x - min_x) + 3
     height = int(max_y - min_y) + 3
     grid = [[' ' for _ in range(width)] for _ in range(height)]
@@ -272,13 +270,13 @@ def display_segments(segments):
     # Draw segments
     for idx, segment in enumerate(segments):
         (x1, y1), (x2, y2) = segment
-        # Scale coordinates to grid
+        # Scale coordinates to the grid
         grid_x1 = int(x1 - min_x + 1)
         grid_y1 = int(height - (y1 - min_y + 2))
         grid_x2 = int(x2 - min_x + 1)
         grid_y2 = int(height - (y2 - min_y + 2))
         
-        # Draw segment using segment number symbol
+        # Draw the segment using the segment number symbol
         symbol = str(idx + 1)
         # Bresenham's algorithm for drawing lines
         dx = abs(grid_x2 - grid_x1)
@@ -311,11 +309,11 @@ def display_segments(segments):
         if 0 <= grid_x2 < width and 0 <= grid_y2 < height:
             grid[grid_y2][grid_x2] = symbol
     
-    # Display grid
+    # Display the grid
     for row in grid:
         print(''.join(row))
     
-    # Display legend
+    # Display the legend
     print("\nLegend:")
     for i, segment in enumerate(segments):
         print(f"{i+1}: {segment}")
@@ -334,7 +332,7 @@ def display_intersections(intersections, segments):
             print(f"   Segment 2: {intersection.segment2}")
         else:
             print(f"\n{i}. Intersection point: {intersection.point}")
-            print(f"   Between segments:")
+            print(f"   Between segments:")  # noqa: F541
             print(f"   Segment 1: {intersection.segment1}")
             print(f"   Segment 2: {intersection.segment2}")
 
@@ -367,11 +365,11 @@ def check_all_intersections(segments):
                         ))
     return intersections
 
-# UI Class
+# UI class
 class SegmentIntersectApp:
     """Main application class for segment intersection visualization"""
     def center_view(self):
-        """Centers view on point (0,0)"""
+        """Centers the view on the point (0,0)"""
         self.root.update_idletasks()  # Ensure window dimensions are updated
         w = self.canvas.winfo_width() if hasattr(self, 'canvas') else 600
         h = self.canvas.winfo_height() if hasattr(self, 'canvas') else 500
@@ -381,7 +379,7 @@ class SegmentIntersectApp:
     def __init__(self, root):
         """Initialize application with UI components"""
         self.root = root
-        self.root.title("Segment Intersect App")
+        self.root.title("Segment Intersection Application")
         
         # Set minimum window size
         self.root.minsize(900, 600)
@@ -400,31 +398,31 @@ class SegmentIntersectApp:
             'intersection_color': '#ff0000'
         }
         
-        # Set colors for main window
+        # Set colors for the main window
         self.root.configure(bg=self.colors['bg'])
         
         # Variables
         self.segments = []
         self.temp_segment = None
         self.start_point = None
-        self.scale_factor = 60.0  # Adjusted to fit the scale from 1 to 15
+        self.scale_factor = 60.0  # Adjusted to scale from 1 to 15
         self.grid_size = 50  # grid size
         self.entries = {}
         
-        # Add variables for view panning
+        # Add variables for panning the view
         self.pan_start_x = None
         self.pan_start_y = None
         self.is_panning = False
         
-        # Create interface
+        # Create the interface
         self.create_widgets()
         
-        # Initialize view position after creating canvas
+        # Initialize view position after creating the canvas
         self.center_view()
 
-    # UI Methods
+    # UI methods
     def create_widgets(self):
-        """Create and configure all UI elements"""
+        """Creates and configures all UI elements"""
         # Main container without PanedWindow
         main_container = tk.Frame(self.root, bg=self.colors['bg'])
         main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
@@ -434,10 +432,10 @@ class SegmentIntersectApp:
         left_panel.pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=5)
         left_panel.pack_propagate(False)
 
-        # Data input panel - new layout
+        # Input panel - new layout
         input_frame = tk.LabelFrame(
             left_panel, 
-            text="Coordinates Input", 
+            text="Enter Coordinates", 
             bg=self.colors['frame_bg'], 
             fg=self.colors['text'],
             font=('Arial', 10, 'bold')
@@ -501,7 +499,7 @@ class SegmentIntersectApp:
         )
         results_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
-        # Add scrollbars to results list
+        # Add scrollbars to the results list
         results_scroll = tk.Scrollbar(results_frame)
         results_scroll.pack(side=tk.RIGHT, fill=tk.Y)
         
@@ -536,7 +534,7 @@ class SegmentIntersectApp:
 
         tk.Button(
             zoom_frame,
-            text="Zoom +",
+            text="Zoom In (+)",
             command=self.zoom_in,
             bg=self.colors['button_bg'],
             fg=self.colors['button_fg'],
@@ -545,7 +543,7 @@ class SegmentIntersectApp:
 
         tk.Button(
             zoom_frame,
-            text="Zoom -",
+            text="Zoom Out (-)",
             command=self.zoom_out,
             bg=self.colors['button_bg'],
             fg=self.colors['button_fg'],
@@ -557,27 +555,27 @@ class SegmentIntersectApp:
         self.canvas.bind("<B1-Motion>", self.drag_segment)
         self.canvas.bind("<ButtonRelease-1>", self.end_segment)
 
-        # Add view panning (middle mouse button)
-        self.canvas.bind("<Button-2>", self.start_pan)  # Middle click
-        self.canvas.bind("<B2-Motion>", self.pan)  # Middle click drag
-        self.canvas.bind("<ButtonRelease-2>", self.end_pan)  # Middle click release
+        # Add panning (middle mouse button)
+        self.canvas.bind("<Button-2>", self.start_pan)  # Middle button
+        self.canvas.bind("<B2-Motion>", self.pan)  # Dragging with middle button
+        self.canvas.bind("<ButtonRelease-2>", self.end_pan)  # Releasing middle button
 
         # Add Enter key handling for input fields
         for entry in self.entries.values():
             entry.bind('<Return>', lambda e: self._safe_call(self.add_segment))
 
     def on_canvas_configure(self, event):
-        """Handles canvas resize and centers view"""
+        """Handles canvas resize and centers the view"""
         self.offset_x = event.width // 2
         self.offset_y = event.height // 2
         self.draw_grid()
 
     def _safe_call(self, func):
-        """Safe function call with error handling and interface update"""
+        """Safely call a function with error handling and UI update"""
         try:
             func()
-            self.draw_grid()  # Refresh grid
-            self.root.update()  # Update interface
+            self.draw_grid()  # Refresh the grid
+            self.root.update()  # Update the UI
         except Exception as e:
             messagebox.showerror("Error", str(e))
 
@@ -611,7 +609,7 @@ class SegmentIntersectApp:
             segment = ((coords['x1'], coords['y1']), (coords['x2'], coords['y2']))
             self.segments.append(segment)
             
-            # Draw segment
+            # Draw the segment
             self.canvas.create_line(
                 coords['x1'] * self.scale_factor + self.offset_x,
                 self.offset_y - coords['y1'] * self.scale_factor,  # Inverted Y
@@ -644,7 +642,7 @@ class SegmentIntersectApp:
     def redraw_canvas(self):
         """Redraw all canvas elements"""
         self.canvas.delete("all")
-        self.draw_grid()  # Draw grid first
+        self.draw_grid()  # Draw the grid first
         if self.segments:  # Only if there are segments
             # Draw all segments
             for segment in self.segments:
@@ -654,7 +652,7 @@ class SegmentIntersectApp:
                     x2 * self.scale_factor + self.offset_x, self.offset_y - y2 * self.scale_factor,  # Inverted Y
                     fill=self.colors['line_color']
                 )
-            # Find and show intersections again, but without displaying message
+            # Find and show intersections again, but without displaying a message
             self._find_intersections_silent()
 
     def _find_intersections_silent(self):
@@ -669,7 +667,7 @@ class SegmentIntersectApp:
         for i, intersection in enumerate(intersections, 1):
             if intersection.is_overlap and intersection.overlap_points:
                 start, end = intersection.overlap_points
-                # Draw common segment
+                # Draw the common segment
                 self.canvas.create_line(
                     start[0] * self.scale_factor + self.offset_x,
                     self.offset_y - start[1] * self.scale_factor,
@@ -695,14 +693,14 @@ class SegmentIntersectApp:
                 px = x * self.scale_factor + self.offset_x
                 py = self.offset_y - y * self.scale_factor  # Inverted Y
                 r = 4
-                # Draw intersection point
+                # Draw the intersection point
                 self.canvas.create_oval(
                     px - r, py - r,
                     px + r, py + r,
                     outline=self.colors['intersection_color'],
                     width=2
                 )
-                # Add text with coordinates above intersection point
+                # Add text with coordinates above the intersection point
                 self.canvas.create_text(
                     px, py - 15,  # 15 pixels above the point
                     text=f"({x:.1f}, {y:.1f})",
@@ -715,7 +713,7 @@ class SegmentIntersectApp:
                 self.results_list.insert(tk.END, "")
 
     def find_intersections(self):
-        """Version with message, called by button"""
+        """Version with message display, called by button"""
         if not self.segments:
             self.results_list.delete(0, tk.END)
             self.results_list.insert(tk.END, "No segments to check")
@@ -723,7 +721,7 @@ class SegmentIntersectApp:
         self._find_intersections_silent()
 
     def draw_grid(self):
-        """Draw coordinate grid with adaptive scale"""
+        """Draws a coordinate grid with adaptive scale"""
         w = self.canvas.winfo_width()
         h = self.canvas.winfo_height()
         
@@ -739,7 +737,7 @@ class SegmentIntersectApp:
             else:
                 return 3 + (visible_numbers - 90) // 30
         
-        # Calculate range of visible numbers
+        # Calculate the range of visible numbers
         left_value = int((0 - self.offset_x) / self.scale_factor)
         right_value = int((w - self.offset_x) / self.scale_factor)
         top_value = int(-(0 - self.offset_y) / self.scale_factor)
@@ -779,7 +777,7 @@ class SegmentIntersectApp:
                         dash=(2, 4) if y != 0 else None
                     )
         
-        # Draw values on OX axis
+        # Draw values on the OX axis
         for x in range(left_value, right_value + 1):
             if x % x_step == 0:
                 px = x * self.scale_factor + self.offset_x
@@ -790,7 +788,7 @@ class SegmentIntersectApp:
                         fill='#ffffff'
                     )
         
-        # Draw values on OY axis
+        # Draw values on the OY axis
         for y in range(bottom_value, top_value + 1):
             if y % y_step == 0:
                 py = self.offset_y - y * self.scale_factor
@@ -806,9 +804,9 @@ class SegmentIntersectApp:
         self.segments = []
         self.results_list.delete(0, tk.END)
 
-    # Event Handlers
+    # Event handling
     def start_segment(self, event):
-        """Start drawing new segment"""
+        """Start drawing a new segment"""
         canvas_x = event.x
         canvas_y = event.y
         # Convert canvas coordinates to mathematical coordinates
@@ -822,7 +820,7 @@ class SegmentIntersectApp:
         )
 
     def drag_segment(self, event):
-        """Update temporary segment during drag"""
+        """Update the temporary segment while dragging"""
         if self.temp_segment:
             self.canvas.coords(
                 self.temp_segment,
@@ -833,7 +831,7 @@ class SegmentIntersectApp:
             )
     
     def end_segment(self, event):
-        """Finish segment drawing and add to list"""
+        """Finish drawing the segment and add to the list"""
         if self.temp_segment:
             canvas_x = event.x
             canvas_y = event.y
@@ -849,14 +847,14 @@ class SegmentIntersectApp:
             self.find_intersections()
 
     def start_pan(self, event):
-        """Start view panning"""
+        """Start panning the view"""
         self.canvas.config(cursor="fleur")  # Change cursor to "hand"
         self.pan_start_x = event.x
         self.pan_start_y = event.y
         self.is_panning = True
 
     def pan(self, event):
-        """Pan view during drag"""
+        """Pan the view while dragging"""
         if not self.is_panning:
             return
             
@@ -872,7 +870,7 @@ class SegmentIntersectApp:
         self.redraw_canvas()
 
     def end_pan(self, event):
-        """End view panning"""
+        """Finish panning the view"""
         self.canvas.config(cursor="")  # Restore default cursor
         self.is_panning = False
         self.pan_start_x = None
@@ -882,7 +880,7 @@ class SegmentIntersectApp:
 def main():
     """Application entry point"""
     root = tk.Tk()
-    app = SegmentIntersectApp(root)
+    app = SegmentIntersectApp(root)  # noqa: F841
     root.mainloop()
 
 if __name__ == "__main__":
